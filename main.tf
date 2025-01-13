@@ -101,7 +101,7 @@ resource "aws_lambda_function" "lambda" {
   package_type  = "Image"
   memory_size   = 128
   timeout       = 10
-  image_uri     = "${aws_ecr_repository.repository_url}:${var.IMAGE_TAG}"
+  image_uri     = "${aws_ecr_repository.repository.repository_url}:${var.IMAGE_TAG}"
   publish       = true
 
   environment {
