@@ -22,6 +22,12 @@ variable "IMAGE_TAG" {
   default     = "latest"
 }
 
+variable "DATABASE_URL" {
+  description = "The connection string for the database"
+  type        = string
+  sensitive   = true
+}
+
 # Tags for resources
 locals {
   tags = {
@@ -100,9 +106,8 @@ resource "aws_lambda_function" "lambda" {
 
   environment {
     variables = {
-      NODE_ENV   = "production"
-      BASE_URL   = "https://shortener.example.com"
-      AWS_REGION = var.AWS_REGION
+      NODE_ENV     = "production"
+      DATABASE_URL = var.DATABASE_URL
     }
   }
 
