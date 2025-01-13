@@ -56,6 +56,10 @@ provider "aws" {
 # ECR Repository
 resource "aws_ecr_repository" "repository" {
   name = "${var.BASE_NAME}-repository"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # IAM Role for Lambda Execution
@@ -73,6 +77,10 @@ resource "aws_iam_role" "lambda_exec_role" {
       }
     ]
   })
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # IAM Policy for Full Access
