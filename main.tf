@@ -22,12 +22,6 @@ variable "IMAGE_TAG" {
   default     = "latest"
 }
 
-variable "DATABASE_URL" {
-  description = "The connection string for the database"
-  type        = string
-  sensitive   = true
-}
-
 # Tags for resources
 locals {
   tags = {
@@ -107,7 +101,7 @@ resource "aws_lambda_function" "lambda" {
   environment {
     variables = {
       NODE_ENV     = "production"
-      DATABASE_URL = var.DATABASE_URL
+      DATABASE_URL = env.DATABASE_URL
     }
   }
 
