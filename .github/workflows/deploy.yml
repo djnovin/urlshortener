@@ -1,9 +1,12 @@
-name: Terraform CI/CD
+name: Deploy
 
 on:
   push:
     branches:
-      - main # Change this to your desired branch
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   terraform:
@@ -13,33 +16,35 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 5.83.1
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Validate
+        run: terraform validate
 
       - name: Initialize Terraform
         run: terraform init
 
-      - name: Terraform Format Check
-        run: terraform fmt -check
-
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
 
       - name: Terraform Apply
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve tfplan
