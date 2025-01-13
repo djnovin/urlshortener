@@ -35,11 +35,11 @@ jobs:
         run: terraform fmt -check
         continue-on-error: true
 
-      - name: Terraform Validate
-        run: terraform validate
-
       - name: Initialize Terraform
         run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
 
       - name: Terraform Plan
         id: plan
