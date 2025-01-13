@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": false, // No source maps in production
+    "declaration": false, // No .d.ts files in production
+    "removeComments": true, // Remove comments to reduce size
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true // Speeds up compilation
+  },
+  "include": ["src/**/*.ts"]
+}
