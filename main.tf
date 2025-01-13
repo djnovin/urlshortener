@@ -22,6 +22,12 @@ variable "IMAGE_TAG" {
   default     = "latest"
 }
 
+variable "DATABASE_URL" {
+  description = "The connection string for the database"
+  type        = string
+  sensitive   = true
+}
+
 # Tags for resources
 locals {
   tags = {
@@ -95,13 +101,13 @@ resource "aws_lambda_function" "lambda" {
   package_type  = "Image"
   memory_size   = 128
   timeout       = 10
-  image_uri     = "${aws_ecr_repository.repository.repository_url}:${var.IMAGE_TAG}"
+  image_uri     = "${aws_ecr_repository.repository_url}:${var.IMAGE_TAG}"
   publish       = true
 
   environment {
     variables = {
       NODE_ENV     = "production"
-      DATABASE_URL = env.DATABASE_URL
+      DATABASE_URL = var.DATABASE_URL
     }
   }
 

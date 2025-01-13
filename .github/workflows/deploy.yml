@@ -45,10 +45,10 @@ jobs:
         id: plan
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: terraform plan -no-color -out=tfplan
+        run: terraform plan -no-color -out=tfplan -var="DATABASE_URL=${{ secrets.DATABASE_URL }}"
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve tfplan -var="DATABASE_URL=${{ secrets.DATABASE_URL }}"
