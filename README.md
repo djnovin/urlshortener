@@ -3,6 +3,7 @@
 ## Description
 
 <p align="justify"> This is a full-stack URL shortening service that allows users to shorten long URLs, create custom aliases, and track analytics (clicks, unique visitors, and geographic data). It’s designed for high performance with a static frontend and a scalable backend, deployed entirely on AWS. </p>
+
 ## Stack
 
 <div align="center"> <img src="https://skillicons.dev/icons?i=react,astro,nestjs,graphql,tailwind,aws,postgres,githubactions" alt="Tech Stack" /> </div>
@@ -85,9 +86,12 @@ pnpm run dev
 
 ## Contributing
 
-Contributing
-<div align="center"> <img src="https://img.shields.io/badge/Contributions-Welcome-brightgreen?style=flat-square" alt="Contributions Welcome" /> </div>
 We welcome contributions! Feel free to open issues, suggest improvements, or submit pull requests.
+
+## Stay in touch
+
+- Author - [Novin Noori](linkedin.com/in/novin-noori)
+- Website - [novinnoori.com](https://novinnoori.com)
 
 ## License
 
