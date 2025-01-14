@@ -20,4 +20,11 @@ export class UrlResolver {
     }
     return originalUrl;
   }
+
+  @Query(() => [String])
+  async getAllUrls() {
+    const urls = await this.urlService.getAllUrls();
+
+    return urls;
+  }
 }

@@ -4,6 +4,7 @@
 
 type Query {
   getOriginalUrl(shortUrl: String!): String!
+  getAllUrls: [String!]!
 }
 
 type Mutation {

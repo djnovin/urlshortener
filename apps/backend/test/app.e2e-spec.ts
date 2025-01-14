@@ -27,7 +27,7 @@ describe('UrlController (e2e)', () => {
 
     expect(response.body).toHaveProperty('shortUrl');
     expect(response.body.shortUrl).toMatch(
-      /http:\/\/localhost:3000\/[a-zA-Z0-9]{5}/,
+      /http:\/\/localhost:8000\/[a-zA-Z0-9]{5}/,
     );
   });
 

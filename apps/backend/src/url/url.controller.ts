@@ -16,16 +16,21 @@ export class UrlController {
   @Post()
   async createUrl(@Body('originalUrl') originalUrl: string) {
     const shortId = await this.urlService.createShortUrl(originalUrl);
-    return { shortUrl: `http://localhost:3000/${shortId.shortUrl}` };
+    return { shortUrl: `http://localhost:8000/${shortId.shortUrl}` };
   }
 
   @Get(':shortUrl')
-  @Redirect() // Use NestJS's built-in redirect
+  @Redirect()
   async redirectUrl(@Param('shortUrl') shortUrl: string) {
     const originalUrl = await this.urlService.getOriginalUrl(shortUrl);
     if (!originalUrl) {
       throw new NotFoundException('URL not found');
     }
-    return { url: originalUrl }; // NestJS automatically uses this for redirection
+    return { url: originalUrl };
+  }
+
+  @Get()
+  async getAllUrls() {
+    return this.urlService.getAllUrls();
   }
 }

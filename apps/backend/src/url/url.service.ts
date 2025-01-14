@@ -39,4 +39,11 @@ export class UrlService {
 
     return url.originalUrl;
   }
+
+  async getAllUrls(): Promise<string[]> {
+    const urls = await this.prisma.url.findMany({
+      select: { shortUrl: true },
+    });
+    return urls.map((url) => url.shortUrl);
+  }
 }
