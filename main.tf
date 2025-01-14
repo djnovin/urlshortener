@@ -16,16 +16,15 @@ variable "AWS_REGION" {
   default     = "ap-southeast-2"
 }
 
-variable "IMAGE_TAG" {
-  description = "Docker image tag for the Lambda function"
-  type        = string
-  default     = "latest"
-}
-
 variable "DATABASE_URL" {
   description = "The connection string for the database"
   type        = string
   sensitive   = true
+}
+
+variable "IMAGE_TAG" {
+  description = "The Docker image tag for the Lambda function"
+  type        = string
 }
 
 # Tags for resources
