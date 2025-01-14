@@ -8,7 +8,7 @@
     "test": "turbo test"
   },
   "author": "Novin Noori <hello@novinnoori.com>",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "devDependencies": {
     "turbo": "^2.3.3"
   },

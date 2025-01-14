@@ -92,7 +92,3 @@ We welcome contributions! Feel free to open issues, suggest improvements, or sub
 
 - Author - [Novin Noori](linkedin.com/in/novin-noori)
 - Website - [novinnoori.com](https://novinnoori.com)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
