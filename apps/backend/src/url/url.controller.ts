@@ -7,10 +7,11 @@ import {
   NotFoundException,
   Redirect,
   Req,
+  Patch,
 } from '@nestjs/common';
 import { UrlService } from './url.service';
 import { Request } from 'express';
-import { CreateUrlDto } from './url.dto';
+import { CreateUrlDto, UpdateUrlDto } from './url.dto';
 
 @Controller()
 export class UrlController {
@@ -30,6 +31,11 @@ export class UrlController {
       throw new NotFoundException('URL not found');
     }
     return { url };
+  }
+
+  @Patch(':id')
+  async updateUrl(@Param('id') id: string, @Body() body: UpdateUrlDto) {
+    return this.urlService.updateUrl(id, body);
   }
 
   @Get()
