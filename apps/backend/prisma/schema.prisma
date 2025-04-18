@@ -16,10 +16,24 @@ datasource db {
 }
 
 model Url {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   originalUrl String
   shortUrl    String
-  clicks      Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  clicks      Int       @default(0)
+  expiredAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Click       Click[]
+}
+
+model Click {
+  id        String   @id @default(uuid())
+  urlId     String
+  country   String?
+  city      String?
+  ip        String?
+  userAgent String?
+  timestamp DateTime @default(now())
+
+  url Url @relation(fields: [urlId], references: [id], onDelete: Cascade)
 }
