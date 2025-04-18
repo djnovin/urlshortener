@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { Request } from 'express';
 
 @Injectable()
 export class UrlService {
@@ -32,7 +33,7 @@ export class UrlService {
     return { shortUrl: result.shortUrl };
   }
 
-  async getOriginalUrl(shortUrl: string): Promise<string | null> {
+  async getOriginalUrl(shortUrl: string, req: Request): Promise<string | null> {
     const url = await this.prisma.url.findFirst({
       where: { shortUrl },
     });
@@ -42,6 +43,33 @@ export class UrlService {
     if (url.expiredAt && url.expiredAt < new Date()) {
       return null;
     }
+
+    const ip =
+      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+      req.socket.remoteAddress;
+
+    const userAgent = req.headers['user-agent'] || null;
+
+    let country: string | undefined;
+    let city: string | undefined;
+
+    const geo = await fetch(`http://ip-api.com/json/${ip}`);
+    const data = await geo.json();
+
+    if (data.status === 'success') {
+      country = data.country;
+      city = data.city;
+    }
+
+    await this.prisma.click.create({
+      data: {
+        urlId: url.id,
+        ip,
+        userAgent,
+        country,
+        city,
+      },
+    });
 
     await this.prisma.url.update({
       where: { id: url.id },

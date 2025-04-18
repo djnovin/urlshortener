@@ -23,4 +23,17 @@ model Url {
   expiredAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  Click       Click[]
+}
+
+model Click {
+  id        String   @id @default(uuid())
+  urlId     String
+  country   String?
+  city      String?
+  ip        String?
+  userAgent String?
+  timestamp DateTime @default(now())
+
+  url Url @relation(fields: [urlId], references: [id], onDelete: Cascade)
 }

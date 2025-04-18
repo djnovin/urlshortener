@@ -6,8 +6,10 @@ import {
   Param,
   NotFoundException,
   Redirect,
+  Req,
 } from '@nestjs/common';
 import { UrlService } from './url.service';
+import { Request } from 'express';
 
 @Controller()
 export class UrlController {
@@ -21,12 +23,12 @@ export class UrlController {
 
   @Get(':shortUrl')
   @Redirect()
-  async redirectUrl(@Param('shortUrl') shortUrl: string) {
-    const originalUrl = await this.urlService.getOriginalUrl(shortUrl);
-    if (!originalUrl) {
+  async redirectUrl(@Param('shortUrl') shortUrl: string, @Req() req: Request) {
+    const url = await this.urlService.getOriginalUrl(shortUrl, req);
+    if (!url) {
       throw new NotFoundException('URL not found');
     }
-    return { url: originalUrl };
+    return { url };
   }
 
   @Get()
