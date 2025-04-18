@@ -10,14 +10,15 @@ import {
 } from '@nestjs/common';
 import { UrlService } from './url.service';
 import { Request } from 'express';
+import { CreateUrlDto } from './url.dto';
 
 @Controller()
 export class UrlController {
   constructor(private readonly urlService: UrlService) {}
 
   @Post()
-  async createUrl(@Body('originalUrl') originalUrl: string) {
-    const shortId = await this.urlService.createShortUrl({ originalUrl });
+  async createUrl(@Body() dto: CreateUrlDto) {
+    const shortId = await this.urlService.createShortUrl(dto);
     return { shortUrl: `http://localhost:8000/${shortId.shortUrl}` };
   }
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { Request } from 'express';
+import { CreateUrlDto } from './url.dto';
 
 @Injectable()
 export class UrlService {
@@ -10,13 +11,18 @@ export class UrlService {
     this.prisma = new PrismaClient();
   }
 
-  async createShortUrl({
-    originalUrl,
-    expiredAt,
-  }: {
-    originalUrl: string;
-    expiredAt?: string;
-  }): Promise<{ shortUrl: string }> {
+  async createShortUrl(dto: CreateUrlDto): Promise<{ shortUrl: string }> {
+    const {
+      originalUrl,
+      expiredAt,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      ref,
+    } = dto;
+
     const shortUrl = Math.random().toString(36).substring(2, 7);
 
     const result = await this.prisma.url.create({
@@ -27,6 +33,12 @@ export class UrlService {
         expiredAt: expiredAt
           ? new Date(expiredAt)
           : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        utmSource: utm_source,
+        utmMedium: utm_medium,
+        utmCampaign: utm_campaign,
+        utmTerm: utm_term,
+        utmContent: utm_content,
+        ref: ref,
       },
     });
 
