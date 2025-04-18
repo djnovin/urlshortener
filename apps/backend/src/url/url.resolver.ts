@@ -8,7 +8,7 @@ export class UrlResolver {
 
   @Mutation(() => String)
   async createShortUrl(@Args('originalUrl') originalUrl: string) {
-    const { shortUrl } = await this.urlService.createShortUrl(originalUrl);
+    const { shortUrl } = await this.urlService.createShortUrl({ originalUrl });
     return shortUrl;
   }
 

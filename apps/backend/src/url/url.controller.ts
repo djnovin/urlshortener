@@ -15,7 +15,7 @@ export class UrlController {
 
   @Post()
   async createUrl(@Body('originalUrl') originalUrl: string) {
-    const shortId = await this.urlService.createShortUrl(originalUrl);
+    const shortId = await this.urlService.createShortUrl({ originalUrl });
     return { shortUrl: `http://localhost:8000/${shortId.shortUrl}` };
   }
 
