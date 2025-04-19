@@ -6,6 +6,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UrlModule } from './url/url.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Request } from 'express';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -15,7 +17,9 @@ import { Request } from 'express';
       autoSchemaFile: 'schema.gql',
       context: ({ req }: { req: Request }) => ({ req }),
     }),
+    AuthModule,
     UrlModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
