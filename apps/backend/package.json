@@ -29,6 +29,7 @@
     "@nestjs/graphql": "^12.2.2",
     "@nestjs/platform-express": "^9.0.0",
     "@prisma/client": "^6.2.1",
+    "argon2": "0.41.1",
     "aws-lambda": "^1.0.7",
     "nanoid": "^5.0.9",
     "reflect-metadata": "^0.1.13",
