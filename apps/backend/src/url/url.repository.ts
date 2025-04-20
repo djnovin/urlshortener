@@ -30,7 +30,12 @@ export class UrlRepository extends BaseRepository<
 
   getAllShortUrls(): Promise<Pick<Url, 'shortUrl'>[]> {
     return this.prismaService.url.findMany({
-      select: { shortUrl: true },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        shortUrl: true,
+      },
     });
   }
 }
