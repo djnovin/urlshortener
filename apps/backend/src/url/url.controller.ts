@@ -11,14 +11,22 @@ import {
 } from '@nestjs/common';
 import { UrlService } from './url.service';
 import { Request } from 'express';
-import { CreateUrlDto, UpdateUrlDto } from './url.dto';
+import {
+  CreateUrlDto,
+  CreateUrlSchema,
+  UpdateUrlDto,
+  UpdateUrlSchema,
+} from './url.dto';
+import { ZodValidationPipe } from '../shared/zod.pipe';
 
 @Controller()
 export class UrlController {
   constructor(private readonly urlService: UrlService) {}
 
   @Post()
-  async createUrl(@Body() dto: CreateUrlDto) {
+  async createUrl(
+    @Body(new ZodValidationPipe(CreateUrlSchema)) dto: CreateUrlDto,
+  ) {
     const shortId = await this.urlService.createShortUrl(dto);
     return { shortUrl: `http://localhost:8000/${shortId.shortUrl}` };
   }
@@ -34,7 +42,10 @@ export class UrlController {
   }
 
   @Patch(':id')
-  async updateUrl(@Param('id') id: string, @Body() body: UpdateUrlDto) {
+  async updateUrl(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateUrlSchema)) body: UpdateUrlDto,
+  ) {
     return this.urlService.updateUrl(id, body);
   }
 
