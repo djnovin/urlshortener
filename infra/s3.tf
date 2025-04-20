@@ -2,13 +2,6 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-locals {
-  tags = {
-    Project = var.PROJECT_NAME
-    Name    = "${var.BASE_NAME}-static-site"
-  }
-}
-
 # ------------------------------
 # 1. Secure S3 Bucket (No website hosting)
 # ------------------------------
