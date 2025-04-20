@@ -7,17 +7,19 @@ import {
   NotFoundException,
   Redirect,
   Req,
+  Patch,
 } from '@nestjs/common';
 import { UrlService } from './url.service';
 import { Request } from 'express';
+import { CreateUrlDto, UpdateUrlDto } from './url.dto';
 
 @Controller()
 export class UrlController {
   constructor(private readonly urlService: UrlService) {}
 
   @Post()
-  async createUrl(@Body('originalUrl') originalUrl: string) {
-    const shortId = await this.urlService.createShortUrl({ originalUrl });
+  async createUrl(@Body() dto: CreateUrlDto) {
+    const shortId = await this.urlService.createShortUrl(dto);
     return { shortUrl: `http://localhost:8000/${shortId.shortUrl}` };
   }
 
@@ -29,6 +31,11 @@ export class UrlController {
       throw new NotFoundException('URL not found');
     }
     return { url };
+  }
+
+  @Patch(':id')
+  async updateUrl(@Param('id') id: string, @Body() body: UpdateUrlDto) {
+    return this.urlService.updateUrl(id, body);
   }
 
   @Get()

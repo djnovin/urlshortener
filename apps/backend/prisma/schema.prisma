@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,8 +5,33 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  profile Profile?
+
+  // URLs this user created or last updated
+  createdUrls Url[] @relation("UrlCreatedBy")
+  updatedUrls Url[] @relation("UrlUpdatedBy")
+
+  // Teams and shared URL access
+  memberships TeamMember[]
+  sharedUrls  UrlUser[]
+}
+
+model Profile {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  name      String?
+  avatarUrl String?
+  bio       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Url {
@@ -23,7 +42,35 @@ model Url {
   expiredAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  Click       Click[]
+
+  // UTM tracking
+  utmId String?
+  utm   UTM?    @relation(fields: [utmId], references: [id], onDelete: SetNull)
+
+  // Audit tracking
+  createdById String?
+  createdBy   User?   @relation("UrlCreatedBy", fields: [createdById], references: [id])
+
+  updatedById String?
+  updatedBy   User?   @relation("UrlUpdatedBy", fields: [updatedById], references: [id])
+
+  // Team context
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id])
+
+  // Access control and tracking
+  clicksLog Click[]
+  owners    UrlUser[] // shared ownership
+}
+
+model UrlUser {
+  id     String   @id @default(uuid())
+  urlId  String
+  userId String
+  role   UserRole @default(VIEWER)
+
+  url  Url  @relation(fields: [urlId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Click {
@@ -36,4 +83,45 @@ model Click {
   timestamp DateTime @default(now())
 
   url Url @relation(fields: [urlId], references: [id], onDelete: Cascade)
+}
+
+model UTM {
+  id       String  @id @default(uuid())
+  source   String?
+  medium   String?
+  campaign String?
+  term     String?
+  content  String?
+  ref      String?
+
+  urls Url[]
+}
+
+model Team {
+  id      String       @id @default(uuid())
+  name    String
+  members TeamMember[]
+  urls    Url[]
+}
+
+model TeamMember {
+  id     String   @id @default(uuid())
+  teamId String
+  userId String
+  role   TeamRole @default(MEMBER)
+
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum UserRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
