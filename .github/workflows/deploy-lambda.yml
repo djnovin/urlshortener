@@ -1,0 +1,43 @@
+name: Deploy NestJS Lambda with Bun
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/backend/**"
+      - ".github/workflows/deploy-lambda.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: ️Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: "latest"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build NestJS backend
+        working-directory: ./apps/backend
+        run: bun run build
+
+      - name: Package Lambda
+        run: |
+          cd apps/backend
+          zip -r function.zip dist node_modules package.json
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://apps/backend/function.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
