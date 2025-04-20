@@ -1,3 +1,4 @@
 .env
 .turbo
 node_modules
+~/.npm-cache
