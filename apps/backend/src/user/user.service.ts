@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { PrismaClient } from '@prisma/client';
 import { CreateUserDto, UpdateProfileDto } from './user.dto';
 
@@ -14,7 +14,12 @@ export class UserService {
   async createUser(dto: CreateUserDto) {
     const { email, password, name, avatarUrl, bio } = dto;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await argon2.hash(password, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16,
+      timeCost: 5,
+      parallelism: 1,
+    });
 
     return this.prisma.user.create({
       data: {
