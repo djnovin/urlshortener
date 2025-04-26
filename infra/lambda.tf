@@ -3,7 +3,8 @@ resource "aws_lambda_function" "lambda" {
   role          = aws_iam_role.lambda_exec_role.arn
   runtime       = "nodejs20.x"
   handler       = "lambda.handler"
-  description   = "Lambda function for NestJS URL Shortener"
+
+  filename = "${path.module}/../apps/backend/build/function.zip"
 
   memory_size = 128
   timeout     = 10

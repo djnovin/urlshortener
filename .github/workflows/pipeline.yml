@@ -1,4 +1,4 @@
-name: Full Deploy (Terraform first)
+name: Full Deploy (Terraform first + real backend zip)
 
 on:
   push:
@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # --- Checkout code ---
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # --- Setup Node.js and PNPM ---
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -25,7 +27,27 @@ jobs:
       - name: Install PNPM globally
         run: npm install -g pnpm
 
-      # --- Terraform Infra First ---
+      # --- Build Backend Lambda before Terraform ---
+      - name: Install backend dependencies
+        working-directory: ./apps/backend
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        working-directory: ./apps/backend
+        run: pnpm exec prisma generate
+
+      - name: Build backend (NestJS)
+        working-directory: ./apps/backend
+        run: pnpm run build
+
+      - name: Package backend into Lambda ZIP
+        working-directory: ./apps/backend
+        run: |
+          pnpm install --prod
+          mkdir -p build
+          zip -r build/function.zip dist node_modules package.json
+
+      # --- Terraform Deploy Infrastructure ---
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -52,43 +74,12 @@ jobs:
         working-directory: ./infra
         run: terraform apply -auto-approve tfplan
 
-      # --- Backend Build and Deploy ---
-      - name: Install backend dependencies
-        working-directory: ./apps/backend
-        run: pnpm install
-
-      - name: Generate Prisma Client
-        working-directory: ./apps/backend
-        run: pnpm exec prisma generate
-
-      - name: Build backend (NestJS)
-        working-directory: ./apps/backend
-        run: pnpm run build
-
-      - name: Package Lambda
-        working-directory: ./apps/backend
-        run: |
-          pnpm install --prod
-          mkdir -p build
-          zip -r build/function.zip dist node_modules package.json
-
-      - name: Update Lambda Function code
-        working-directory: ./apps/backend
-        run: |
-          aws lambda update-function-code \
-            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-            --zip-file fileb://build/function.zip
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      # --- Frontend Build and Deploy ---
+      # --- Build and Deploy Frontend Astro Site ---
       - name: Install frontend dependencies
         working-directory: ./apps/client
         run: pnpm install
 
-      - name: Build Astro site
+      - name: Build Astro frontend
         working-directory: ./apps/client
         run: pnpm run build
 
