@@ -1,4 +1,4 @@
-name: "Full Deploy: Backend, Frontend, Infra"
+name: Full Deploy (Terraform first)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - "apps/backend/**"
       - "apps/client/**"
       - "infra/**"
-      - ".github/workflows/full-deploy.yml"
+      - ".github/workflows/deploy.yml"
 
 jobs:
   full-deploy:
@@ -25,71 +25,7 @@ jobs:
       - name: Install PNPM globally
         run: npm install -g pnpm
 
-      # Install backend dependencies
-      - name: Install Backend dependencies
-        working-directory: ./apps/backend
-        run: pnpm install
-
-      # Install frontend dependencies
-      - name: Install Frontend dependencies
-        working-directory: ./apps/client
-        run: pnpm install
-
-      # Generate Prisma client
-      - name: Generate Prisma Client
-        working-directory: ./apps/backend
-        run: pnpm exec prisma generate
-
-      # Build Backend
-      - name: Build NestJS Backend
-        working-directory: ./apps/backend
-        run: pnpm run build
-
-      # Package Lambda
-      - name: Package Lambda
-        working-directory: ./apps/backend
-        run: |
-          pnpm install --prod
-          mkdir -p build
-          zip -r build/function.zip dist node_modules package.json
-
-      # Deploy to Lambda
-      - name: Update AWS Lambda Function
-        working-directory: ./apps/backend
-        run: |
-          aws lambda update-function-code \
-            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-            --zip-file fileb://build/function.zip
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      # Build Frontend
-      - name: Build Astro site
-        working-directory: ./apps/client
-        run: pnpm run build
-
-      # Deploy Astro site to S3
-      - name: Sync Astro build to S3
-        run: aws s3 sync ./apps/client/dist "s3://${{ secrets.S3_BUCKET_NAME }}" --delete
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      # Invalidate CloudFront cache
-      - name: Invalidate CloudFront Cache
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      # Terraform
+      # --- Terraform Infra First ---
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -115,3 +51,60 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: ./infra
         run: terraform apply -auto-approve tfplan
+
+      # --- Backend Build and Deploy ---
+      - name: Install backend dependencies
+        working-directory: ./apps/backend
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        working-directory: ./apps/backend
+        run: pnpm exec prisma generate
+
+      - name: Build backend (NestJS)
+        working-directory: ./apps/backend
+        run: pnpm run build
+
+      - name: Package Lambda
+        working-directory: ./apps/backend
+        run: |
+          pnpm install --prod
+          mkdir -p build
+          zip -r build/function.zip dist node_modules package.json
+
+      - name: Update Lambda Function code
+        working-directory: ./apps/backend
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://build/function.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      # --- Frontend Build and Deploy ---
+      - name: Install frontend dependencies
+        working-directory: ./apps/client
+        run: pnpm install
+
+      - name: Build Astro site
+        working-directory: ./apps/client
+        run: pnpm run build
+
+      - name: Sync Astro build to S3
+        run: aws s3 sync ./apps/client/dist "s3://${{ secrets.S3_BUCKET_NAME }}" --delete
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
