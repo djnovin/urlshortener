@@ -1,4 +1,4 @@
-name: Deploy NestJS Lambda with Bun
+name: Deploy NestJS Lambda with Node 20 and PNPM
 
 on:
   push:
@@ -13,34 +13,42 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: ️Install Bun
-        uses: oven-sh/setup-bun@v1
+      - name: Setup Node.js 20 and enable Corepack
+        uses: actions/setup-node@v4
         with:
-          bun-version: "latest"
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Enable and install PNPM
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
 
       - name: Install dependencies
-        run: bun install
+        run: pnpm install
 
       - name: 🔧 Generate Prisma Client
-        run: bunx prisma generate
         working-directory: ./apps/backend
+        run: pnpm prisma generate
 
       - name: Build NestJS backend
         working-directory: ./apps/backend
-        run: bun run build
+        run: pnpm run build
 
       - name: Package Lambda
+        working-directory: ./apps/backend
         run: |
-          cd apps/backend
+          pnpm install --prod
           zip -r function.zip dist node_modules package.json
 
-      - name: Deploy to Lambda
+      - name: Deploy to AWS Lambda
+        working-directory: ./apps/backend
         run: |
           aws lambda update-function-code \
             --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-            --zip-file fileb://apps/backend/function.zip
+            --zip-file fileb://function.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
