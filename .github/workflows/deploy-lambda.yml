@@ -30,7 +30,7 @@ jobs:
 
       - name: 🔧 Generate Prisma Client
         working-directory: ./apps/backend
-        run: corepack pnpm prisma generate
+        run: corepack pnpm exec prisma generate
 
       - name: Build NestJS backend
         working-directory: ./apps/backend
