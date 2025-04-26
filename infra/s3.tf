@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "ap-southeast-2"
-}
-
 # ------------------------------
 # 1. Secure S3 Bucket (No website hosting)
 # ------------------------------
