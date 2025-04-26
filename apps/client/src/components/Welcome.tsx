@@ -90,7 +90,7 @@ const UrlShortener = () => {
           onClick={handleShorten}
           disabled={!longUrl.trim()}
         >
-          Shorten
+          Shorten Url
         </button>
         {shortUrl && (
           <p className="mt-4">
