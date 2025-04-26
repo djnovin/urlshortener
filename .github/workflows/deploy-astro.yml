@@ -21,17 +21,17 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Enable and install PNPM
+      - name: Enable Corepack and Prepare PNPM
         run: |
           corepack enable
           corepack prepare pnpm@latest --activate
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies using Corepack
+        run: corepack pnpm install
 
       - name: Build Astro site
         working-directory: ./apps/client
-        run: pnpm run build
+        run: corepack pnpm run build
 
       - name: Sync to S3
         run: aws s3 sync ./apps/client/dist "s3://${{ secrets.S3_BUCKET_NAME }}" --delete

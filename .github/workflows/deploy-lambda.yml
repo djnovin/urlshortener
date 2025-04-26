@@ -21,26 +21,26 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Enable and install PNPM
+      - name: Enable Corepack and Prepare PNPM
         run: |
           corepack enable
           corepack prepare pnpm@latest --activate
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies using Corepack
+        run: corepack pnpm install
 
       - name: 🔧 Generate Prisma Client
         working-directory: ./apps/backend
-        run: pnpm prisma generate
+        run: corepack pnpm prisma generate
 
       - name: Build NestJS backend
         working-directory: ./apps/backend
-        run: pnpm run build
+        run: corepack pnpm run build
 
       - name: Package Lambda
         working-directory: ./apps/backend
         run: |
-          pnpm install --prod
+          corepack pnpm install --prod
           zip -r function.zip dist node_modules package.json
 
       - name: Deploy to AWS Lambda
