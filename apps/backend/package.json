@@ -32,6 +32,7 @@
     "argon2": "0.41.1",
     "aws-lambda": "^1.0.7",
     "nanoid": "^5.0.9",
+    "prisma": "^6.6.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"
   },
