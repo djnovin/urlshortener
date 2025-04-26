@@ -36,7 +36,7 @@ export class UrlService {
       clicks: 0,
       originalUrl,
       shortUrl,
-      expiredAt: expiredAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiredAt: expiredAt ?? new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
       domain: userDomain,
       utm: utm
         ? {
