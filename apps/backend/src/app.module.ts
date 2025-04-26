@@ -7,11 +7,22 @@ import { UrlModule } from './url/url.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Request } from 'express';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
+import { ProfileModule } from './profile/profile.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'schema.gql',
@@ -19,7 +30,7 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UrlModule,
-    UserModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

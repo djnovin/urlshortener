@@ -27,9 +27,4 @@ export class UrlResolver {
     }
     return originalUrl;
   }
-
-  @Query(() => [String])
-  async getAllUrls() {
-    return this.urlService.getAllUrls();
-  }
 }

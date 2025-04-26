@@ -8,20 +8,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  customDomain String?
 
-  profile Profile?
-
-  // URLs this user created or last updated
-  createdUrls Url[] @relation("UrlCreatedBy")
-  updatedUrls Url[] @relation("UrlUpdatedBy")
-
-  // Teams and shared URL access
-  memberships TeamMember[]
-  sharedUrls  UrlUser[]
+  profile     Profile?
+  urlsCreated Url[]    @relation("UserCreatedUrls")
 }
 
 model Profile {
@@ -37,52 +32,35 @@ model Profile {
 model Url {
   id          String    @id @default(uuid())
   originalUrl String
-  shortUrl    String
+  shortUrl    String    @unique
   clicks      Int       @default(0)
   expiredAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  domain      String?
 
-  // UTM tracking
   utmId String?
   utm   UTM?    @relation(fields: [utmId], references: [id], onDelete: SetNull)
 
-  // Audit tracking
   createdById String?
-  createdBy   User?   @relation("UrlCreatedBy", fields: [createdById], references: [id])
+  createdBy   User?   @relation("UserCreatedUrls", fields: [createdById], references: [id], onDelete: SetNull)
 
-  updatedById String?
-  updatedBy   User?   @relation("UrlUpdatedBy", fields: [updatedById], references: [id])
-
-  // Team context
-  teamId String?
-  team   Team?   @relation(fields: [teamId], references: [id])
-
-  // Access control and tracking
   clicksLog Click[]
-  owners    UrlUser[] // shared ownership
-}
 
-model UrlUser {
-  id     String   @id @default(uuid())
-  urlId  String
-  userId String
-  role   UserRole @default(VIEWER)
-
-  url  Url  @relation(fields: [urlId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  @@index([createdById])
+  @@index([utmId])
 }
 
 model Click {
   id        String   @id @default(uuid())
   urlId     String
-  country   String?
-  city      String?
-  ip        String?
-  userAgent String?
+  ip        String   @default("")
+  userAgent String   @default("")
   timestamp DateTime @default(now())
 
   url Url @relation(fields: [urlId], references: [id], onDelete: Cascade)
+
+  @@index([urlId])
 }
 
 model UTM {
@@ -95,33 +73,4 @@ model UTM {
   ref      String?
 
   urls Url[]
-}
-
-model Team {
-  id      String       @id @default(uuid())
-  name    String
-  members TeamMember[]
-  urls    Url[]
-}
-
-model TeamMember {
-  id     String   @id @default(uuid())
-  teamId String
-  userId String
-  role   TeamRole @default(MEMBER)
-
-  team Team @relation(fields: [teamId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-}
-
-enum UserRole {
-  OWNER
-  EDITOR
-  VIEWER
-}
-
-enum TeamRole {
-  OWNER
-  ADMIN
-  MEMBER
 }

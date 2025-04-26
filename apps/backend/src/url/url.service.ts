@@ -1,44 +1,59 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUrlDto, UpdateUrlDto } from './url.dto';
 import { UrlRepository } from './url.repository';
 
 @Injectable()
 export class UrlService {
-  constructor(private readonly urlRepo: UrlRepository) {}
+  constructor(
+    private readonly urlRepo: UrlRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
-  async createShortUrl(dto: CreateUrlDto): Promise<{ shortUrl: string }> {
-    const {
-      originalUrl,
-      expiredAt,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      utm_content,
-    } = dto;
+  async createShortUrl(
+    dto: CreateUrlDto,
+    userId?: string,
+  ): Promise<{ shortUrl: string; domain?: string }> {
+    const { originalUrl, expiredAt, utm } = dto;
 
     const shortUrl = Math.random().toString(36).substring(2, 7);
 
-    const result = await this.urlRepo.create({
+    let userDomain: string | undefined = undefined;
+
+    if (userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { customDomain: true },
+      });
+
+      if (user?.customDomain) {
+        userDomain = user.customDomain;
+      }
+    }
+
+    const url = await this.urlRepo.create({
       clicks: 0,
       originalUrl,
       shortUrl,
-      expiredAt: expiredAt
-        ? new Date(expiredAt)
-        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      utm: {
-        create: {
-          source: utm_source,
-          medium: utm_medium,
-          campaign: utm_campaign,
-          term: utm_term,
-          content: utm_content,
-        },
-      },
+      expiredAt: expiredAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      domain: userDomain,
+      utm: utm
+        ? {
+            create: {
+              campaign: utm.campaign,
+              content: utm.content,
+              medium: utm.medium,
+              ref: utm.ref,
+              source: utm.source,
+              term: utm.term,
+            },
+          }
+        : undefined,
+      ...(userId && { createdBy: { connect: { id: userId } } }),
     });
 
-    return { shortUrl: result.shortUrl };
+    return { shortUrl: url.shortUrl, domain: userDomain };
   }
 
   async getOriginalUrl(shortUrl: string, req: Request): Promise<string | null> {
@@ -49,24 +64,12 @@ export class UrlService {
       req.headers['x-forwarded-for']?.toString().split(',')[0] ||
       req.socket.remoteAddress;
 
-    const userAgent = req.headers['user-agent'] || null;
-
-    let country: string | undefined;
-    let city: string | undefined;
-
-    const geo = await fetch(`http://ip-api.com/json/${ip}`);
-    const data = await geo.json();
-    if (data.status === 'success') {
-      country = data.country;
-      city = data.city;
-    }
+    const userAgent = req.headers['user-agent'];
 
     await this.urlRepo.createClick({
       url: { connect: { id: url.id } },
       ip,
       userAgent,
-      country,
-      city,
     });
 
     await this.urlRepo.incrementClicks(url.id);
@@ -80,31 +83,20 @@ export class UrlService {
       throw new NotFoundException('URL not found');
     }
 
-    const shouldUpdateUTM =
-      dto.utm_source ||
-      dto.utm_medium ||
-      dto.utm_campaign ||
-      dto.utm_term ||
-      dto.utm_content;
-
     return this.urlRepo.update(id, {
       expiredAt: dto.expiredAt,
-      utm: shouldUpdateUTM
+      utm: dto.utm
         ? {
             update: {
-              source: dto.utm_source,
-              medium: dto.utm_medium,
-              campaign: dto.utm_campaign,
-              term: dto.utm_term,
-              content: dto.utm_content,
+              campaign: dto.utm.campaign,
+              content: dto.utm.content,
+              medium: dto.utm.medium,
+              ref: dto.utm.ref,
+              source: dto.utm.source,
+              term: dto.utm.term,
             },
           }
         : undefined,
     });
-  }
-
-  async getAllUrls(): Promise<string[]> {
-    const urls = await this.urlRepo.getAllShortUrls();
-    return urls.map((url) => url.shortUrl);
   }
 }
