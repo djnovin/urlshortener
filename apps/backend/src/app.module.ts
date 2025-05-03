@@ -13,7 +13,6 @@ import { PaymentModule } from './payment/payment.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
-import { McpModule } from './mcp/mcp.module';
 
 @Module({
   imports: [
@@ -39,7 +38,6 @@ import { McpModule } from './mcp/mcp.module';
     PaymentModule,
     WebhookModule,
     EmailModule,
-    McpModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],
